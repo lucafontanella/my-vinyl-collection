@@ -12,6 +12,26 @@ let tokenExpiresAt=0;
 let records=loadRecords(), coverData='';
 const $=id=>document.getElementById(id);
 function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]')}catch{return []}}
+function initGoogleAuth(){
+  if(!window.google?.accounts?.oauth2){
+    toast('Servizio di autenticazione Google non disponibile.');
+    return;
+  }
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GOOGLE_CLIENT_ID,
+    scope:GOOGLE_SCOPE,
+    callback:(response)=>{
+      if(response.error){
+        toast('Accesso Google non riuscito.');
+        return;
+      }
+      accessToken=response.access_token;
+      tokenExpiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;
+      updateConnection();
+      toast('Accesso Google effettuato.');
+    }
+  });
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
