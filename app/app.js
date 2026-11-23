@@ -96,6 +96,26 @@ function recordsToGoogleRows(list){
     r.updatedAt||''
   ]);
 }
+async function googleDriveRequest(url,options={}){
+  if(!accessToken || Date.now()>=tokenExpiresAt){
+    throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
+  }
+  const response=await fetch(url,{
+    ...options,
+    headers:{
+      ...options.headers,
+      Authorization:`Bearer ${accessToken}`
+    }
+  });
+  if(!response.ok){
+    const error=await response.json().catch(()=>({}));
+    throw new Error(
+      error.error?.message||'Errore durante la comunicazione con Google Drive.'
+    );
+  }
+  if(response.status===204) return null;
+  return response.json();
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
