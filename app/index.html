@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#17191e">
+  <meta name="description" content="Il catalogo personale dei tuoi vinili">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>My Vinyl Collection</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">◉</div>
+      <div><div class="brand-name">MY VINYL</div><div class="brand-sub">COLLECTION</div></div>
+    </div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Impostazioni" title="Impostazioni">⚙</button>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">LA TUA LIBRERIA MUSICALE</div>
+      <h1>La tua collezione,<br><span>sempre con te.</span></h1>
+      <p class="muted">Un catalogo personale per sapere sempre quali dischi possiedi.</p>
+      <div class="stats">
+        <div><strong id="totalCount">0</strong><span>DISCHI</span></div>
+        <div><strong id="artistCount">0</strong><span>ARTISTI</span></div>
+        <div><strong id="genreCount">0</strong><span>GENERI</span></div>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <label class="search">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="Cerca artista o album…" autocomplete="off">
+        <button id="clearSearch" class="clear-search" aria-label="Pulisci ricerca">×</button>
+      </label>
+      <div class="toolbar-row">
+        <select id="sortSelect" aria-label="Ordina catalogo">
+          <option value="artist">Artista A–Z</option>
+          <option value="album">Album A–Z</option>
+          <option value="year-desc">Anno: più recenti</option>
+          <option value="year-asc">Anno: più vecchi</option>
+          <option value="added">Ultimi aggiunti</option>
+        </select>
+        <button id="addBtn" class="primary-btn"><span>＋</span> Aggiungi disco</button>
+      </div>
+      <div class="status-line"><span id="connectionDot" class="dot"></span><span id="connectionText">Archivio locale · da configurare</span></div>
+    </section>
+
+    <section>
+      <div class="section-heading"><h2>La collezione</h2><span id="resultCount" class="muted small">0 risultati</span></div>
+      <div id="albumGrid" class="album-grid"></div>
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">♫</div>
+        <h3>La tua collezione comincia qui</h3>
+        <p>Aggiungi il primo vinile oppure importa un file CSV esportato da Excel.</p>
+        <button class="primary-btn" id="emptyAddBtn">＋ Aggiungi il primo disco</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active"><span>▦</span>Collezione</button>
+    <button class="nav-item" id="exportBtn"><span>⇩</span>Esporta</button>
+    <button class="nav-item" id="importBtn"><span>⇧</span>Importa</button>
+    <input id="importFile" type="file" accept=".csv,text/csv" hidden>
+  </nav>
+
+  <dialog id="albumDialog" class="dialog">
+    <form id="albumForm" method="dialog">
+      <div class="dialog-head"><div><div class="eyebrow">SCHEDA VINILE</div><h2 id="formTitle">Aggiungi un disco</h2></div><button type="button" class="close-btn" data-close="albumDialog">×</button></div>
+      <input type="hidden" id="albumId">
+      <div class="cover-editor">
+        <div id="coverPreview" class="cover-preview"><span>♫</span></div>
+        <div class="cover-actions"><strong>Copertina</strong><p class="muted small">Puoi inserire un'immagine dal dispositivo o un collegamento web.</p>
+          <label class="file-btn">Carica immagine<input id="coverFile" type="file" accept="image/*" hidden></label>
+          <input id="coverUrl" type="url" placeholder="https://… (URL copertina)">
+        </div>
+      </div>
+      <div class="form-grid">
+        <label class="field wide">Artista *<input id="artist" required maxlength="160" placeholder="Es. AIR"></label>
+        <label class="field wide">Album *<input id="album" required maxlength="200" placeholder="Es. Moon Safari"></label>
+        <label class="field">Anno<input id="year" type="number" min="1900" max="2100" placeholder="1998"></label>
+        <label class="field">Genere<input id="genre" maxlength="100" placeholder="Electronic"></label>
+        <label class="field wide">Etichetta<input id="label" maxlength="160" placeholder="Parlophone Music"></label>
+        <label class="field wide">Info / edizione / note<textarea id="info" rows="3" placeholder="Prima stampa, ristampa, condizioni…"></textarea></label>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="deleteBtn" class="danger-btn hidden">Elimina</button>
+        <span class="spacer"></span>
+        <button type="button" class="secondary-btn" data-close="albumDialog">Annulla</button>
+        <button type="submit" class="primary-btn">Salva disco</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog" class="dialog">
+    <form id="settingsForm" method="dialog">
+      <div class="dialog-head"><div><div class="eyebrow">CONFIGURAZIONE</div><h2>Collega Google Sheets</h2></div><button type="button" class="close-btn" data-close="settingsDialog">×</button></div>
+      <p class="muted">La versione iniziale funziona già in locale sul dispositivo. Per sincronizzare il catalogo tra telefono e computer, inserisci l'URL della Web App Google Apps Script dopo averla configurata seguendo il README.</p>
+      <label class="field wide">URL Web App<input id="apiUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <div class="notice">Suggerimento: prima prova l'app con alcuni dischi di test. Collegheremo il tuo archivio Google Sheets quando avremo pubblicato il servizio.</div>
+      <div class="dialog-actions"><span class="spacer"></span><button type="button" class="secondary-btn" data-close="settingsDialog">Annulla</button><button type="submit" class="primary-btn">Salva configurazione</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
