@@ -64,6 +64,23 @@ async function readGoogleSheet(){
   const data=await response.json();
   return data.values||[];
 }
+function googleRowsToRecords(rows){
+  if(!rows.length) return [];
+  return rows.slice(1)
+    .filter(row=>row[0]||row[1]||row[3])
+    .map(row=>({
+      id:row[0]||'',
+      artist:row[1]||'',
+      year:row[2]||'',
+      album:row[3]||'',
+      genre:row[4]||'',
+      label:row[5]||'',
+      info:row[6]||'',
+      cover:row[7]||'',
+      createdAt:row[8]||'',
+      updatedAt:row[9]||''
+    }));
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
