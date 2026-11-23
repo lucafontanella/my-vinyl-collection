@@ -261,7 +261,10 @@ $('coverUrl').addEventListener('input',()=>{coverData='';setCoverPreview($('cove
 $('albumForm').addEventListener('submit',e=>{e.preventDefault();const id=$('albumId').value||('VIN-'+Date.now().toString(36).toUpperCase());const old=records.find(r=>r.id===id);const cover=coverData||$('coverUrl').value.trim()||old?.cover||'';const rec={id,artist:$('artist').value.trim(),album:$('album').value.trim(),year:$('year').value,genre:$('genre').value.trim(),label:$('label').value.trim(),info:$('info').value.trim(),cover,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};if(old)records=records.map(x=>x.id===id?rec:x);else records.push(rec);saveRecords();$('albumDialog').close();toast(old?'Disco aggiornato':'Disco aggiunto');});
 $('deleteBtn').addEventListener('click',()=>{const id=$('albumId').value;if(!id||!confirm('Eliminare questo disco dal catalogo?'))return;records=records.filter(r=>r.id!==id);saveRecords();$('albumDialog').close();toast('Disco eliminato')});
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
-$('settingsBtn').addEventListener('click',()=>{$('apiUrl').value=config().apiUrl||'';$('settingsDialog').showModal()});
+$('settingsBtn').addEventListener('click',()=>{
+  updateConnection();
+  $('settingsDialog').showModal();
+});
 $('settingsForm').addEventListener('submit',e=>{e.preventDefault();localStorage.setItem(CONFIG_KEY,JSON.stringify({apiUrl:$('apiUrl').value.trim()}));$('settingsDialog').close();toast('Configurazione salvata. Sincronizzazione da attivare nella prossima fase.');updateConnection()});
 function updateConnection(){
   const connected=!!accessToken && Date.now()<tokenExpiresAt;
