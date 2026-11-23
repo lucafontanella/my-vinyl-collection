@@ -31,6 +31,7 @@ function initGoogleAuth(){
       accessToken=response.access_token;
       tokenExpiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;
       updateConnection();
+      render();
       toast('Accesso Google effettuato.');
     }
   });
