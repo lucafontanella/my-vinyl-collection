@@ -96,6 +96,31 @@ function recordsToGoogleRows(list){
     r.updatedAt||''
   ]);
 }
+async function writeGoogleSheet(list){
+  if(!accessToken || Date.now()>=tokenExpiresAt){
+    throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
+  }
+  const range=encodeURIComponent(`${SHEET_NAME}!A2:J`);
+  const response=await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?valueInputOption=RAW`,
+    {
+      method:'PUT',
+      headers:{
+        Authorization:`Bearer ${accessToken}`,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        majorDimension:'ROWS',
+        values:recordsToGoogleRows(list)
+      })
+    }
+  );
+  if(!response.ok){
+    const error=await response.json();
+    throw new Error(error.error?.message||'Errore durante la scrittura su Google Sheets.');
+  }
+  return response.json();
+}
 async function googleDriveRequest(url,options={}){
   if(!accessToken || Date.now()>=tokenExpiresAt){
     throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
