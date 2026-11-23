@@ -170,6 +170,24 @@ async function uploadCoverToDrive(dataUrl,albumName){
   );
   return `drive:${result.id}`;
 }
+async function downloadCoverFromDrive(fileId){
+  if(!accessToken || Date.now()>=tokenExpiresAt){
+    throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
+  }
+  const response=await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,
+    {
+      headers:{
+        Authorization:`Bearer ${accessToken}`
+      }
+    }
+  );
+  if(!response.ok){
+    throw new Error('Impossibile recuperare la copertina da Google Drive.');
+  }
+  const imageBlob=await response.blob();
+  return URL.createObjectURL(imageBlob);
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
