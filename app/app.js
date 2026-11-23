@@ -218,6 +218,33 @@ function render(){
  $('albumGrid').style.display=list.length?'grid':'none';
  if(records.length&&list.length===0){$('emptyState').classList.add('show');$('emptyState').querySelector('h3').textContent='Nessun disco trovato';$('emptyState').querySelector('p').textContent='Prova con un altro artista o titolo.';$('emptyState').querySelector('button').classList.add('hidden')}else{$('emptyState').querySelector('h3').textContent='La tua collezione comincia qui';$('emptyState').querySelector('p').textContent='Aggiungi il primo vinile oppure importa un file CSV esportato da Excel.';$('emptyState').querySelector('button').classList.remove('hidden')}
 }
+async function loadDriveCovers(){
+  if(!accessToken || Date.now()>=tokenExpiresAt) return;
+  const placeholders=document.querySelectorAll('.drive-cover[data-drive-id]');
+  for(const placeholder of placeholders){
+    const fileId=placeholder.dataset.driveId;
+    const album=placeholder.dataset.album||'';
+    if(!fileId) continue;
+    try{
+      let imageUrl=driveCoverCache[fileId];
+
+      if(!imageUrl){
+        imageUrl=await downloadCoverFromDrive(fileId);
+        driveCoverCache[fileId]=imageUrl;
+      }
+      if(placeholder.isConnected){
+        const img=document.createElement('img');
+        img.loading='lazy';
+        img.src=imageUrl;
+        img.alt=`Copertina ${album}`;
+        img.onerror=()=>img.remove();
+        placeholder.replaceWith(img);
+      }
+    }catch(error){
+      console.error('Errore caricamento copertina:',error);
+    }
+  }
+}
 function openForm(r=null){
  $('albumForm').reset();coverData='';$('albumId').value=r?.id||'';$('formTitle').textContent=r?'Modifica disco':'Aggiungi un disco';$('deleteBtn').classList.toggle('hidden',!r);
  ['artist','album','year','genre','label','info'].forEach(k=>$(k).value=r?.[k]||'');
