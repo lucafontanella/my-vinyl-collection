@@ -97,15 +97,36 @@
     </form>
   </dialog>
 
-  <dialog id="settingsDialog" class="dialog">
-    <form id="settingsForm" method="dialog">
-      <div class="dialog-head"><div><div class="eyebrow">CONFIGURAZIONE</div><h2>Collega Google Sheets</h2></div><button type="button" class="close-btn" data-close="settingsDialog">×</button></div>
-      <p class="muted">La versione iniziale funziona già in locale sul dispositivo. Per sincronizzare il catalogo tra telefono e computer, inserisci l'URL della Web App Google Apps Script dopo averla configurata seguendo il README.</p>
-      <label class="field wide">URL Web App<input id="apiUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label>
-      <div class="notice">Suggerimento: prima prova l'app con alcuni dischi di test. Collegheremo il tuo archivio Google Sheets quando avremo pubblicato il servizio.</div>
-      <div class="dialog-actions"><span class="spacer"></span><button type="button" class="secondary-btn" data-close="settingsDialog">Annulla</button><button type="submit" class="primary-btn">Salva configurazione</button></div>
-    </form>
-  </dialog>
+
+<dialog id="settingsDialog" class="dialog">
+  <form id="settingsForm" method="dialog">
+    <div class="dialog-head">
+      <div>
+        <div class="eyebrow">CONFIGURAZIONE</div>
+        <h2>Collega Google Sheets</h2>
+      </div>
+      <button type="button" class="close-btn" data-close="settingsDialog">×</button>
+    </div>
+
+    <p class="muted">
+      Accedi con il tuo account Google per sincronizzare la collezione
+      tra computer e smartphone.
+    </p>
+
+    <div id="googleAccountStatus" class="notice">
+      Non sei ancora collegato a Google.
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="secondary-btn" id="googleSignInBtn">
+        Accedi con Google
+      </button>
+      <button type="button" class="primary-btn" id="syncNowBtn" disabled>
+        Sincronizza ora
+      </button>
+    </div>
+  </form>
+</dialog>
 
   <div id="toast" class="toast" role="status"></div>
   <script src="app.js"></script>
