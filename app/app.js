@@ -43,9 +43,7 @@ function signInWithGoogle(){
   if(!tokenClient){
     return;
   }
-  tokenClient.requestAccessToken({
-    prompt:accessToken?'':''
-  });
+  tokenClient.requestAccessToken();   
 }
 async function readGoogleSheet(){
   if(!accessToken || Date.now()>=tokenExpiresAt){
