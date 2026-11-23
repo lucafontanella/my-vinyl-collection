@@ -32,6 +32,17 @@ function initGoogleAuth(){
     }
   });
 }
+function signInWithGoogle(){
+  if(!tokenClient){
+    initGoogleAuth();
+  }
+  if(!tokenClient){
+    return;
+  }
+  tokenClient.requestAccessToken({
+    prompt:accessToken?'':''
+  });
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
