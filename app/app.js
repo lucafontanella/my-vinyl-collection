@@ -65,6 +65,10 @@ async function readGoogleSheet(){
   const data=await response.json();
   return data.values||[];
 }
+async function getGoogleRecords(){
+  const rows=await readGoogleSheet();
+  return googleRowsToRecords(rows);
+}
 function googleRowsToRecords(rows){
   if(!rows.length) return [];
   return rows.slice(1)
