@@ -263,8 +263,23 @@ $('deleteBtn').addEventListener('click',()=>{const id=$('albumId').value;if(!id|
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
 $('settingsBtn').addEventListener('click',()=>{$('apiUrl').value=config().apiUrl||'';$('settingsDialog').showModal()});
 $('settingsForm').addEventListener('submit',e=>{e.preventDefault();localStorage.setItem(CONFIG_KEY,JSON.stringify({apiUrl:$('apiUrl').value.trim()}));$('settingsDialog').close();toast('Configurazione salvata. Sincronizzazione da attivare nella prossima fase.');updateConnection()});
-function updateConnection(){const connected=!!config().apiUrl;$('connectionText').textContent=connected?'URL Google configurato · sincronizzazione da completare':'Archivio locale · Google Sheets non collegato';$('connectionDot').classList.toggle('online',connected)}
-function exportCSV(){const cols=['ID','Artista','Anno','Album','Genere','Etichetta','Info','Copertina','Data aggiunta'];const keys=['id','artist','year','album','genre','label','info','cover','createdAt'];const csv=[cols,...records.map(r=>keys.map(k=>r[k]||''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-vinyl-collection.csv';a.click();URL.revokeObjectURL(a.href);toast('Catalogo esportato in CSV, apribile con Excel')}
+function updateConnection(){
+  const connected=!!accessToken && Date.now()<tokenExpiresAt;
+  $('connectionText').textContent=connected
+    ?'Google collegato · pronto per la sincronizzazione'
+    :'Archivio locale · Google Sheets non collegato';
+  $('connectionDot').classList.toggle('online',connected);
+  const status=$('googleAccountStatus');
+  if(status){
+    status.textContent=connected
+      ?'Accesso Google effettuato. Puoi procedere con la sincronizzazione.'
+      :'Non sei ancora collegato a Google.';
+  }
+  const syncButton=$('syncNowBtn');
+  if(syncButton){
+    syncButton.disabled=!connected;
+  }
+}function exportCSV(){const cols=['ID','Artista','Anno','Album','Genere','Etichetta','Info','Copertina','Data aggiunta'];const keys=['id','artist','year','album','genre','label','info','cover','createdAt'];const csv=[cols,...records.map(r=>keys.map(k=>r[k]||''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-vinyl-collection.csv';a.click();URL.revokeObjectURL(a.href);toast('Catalogo esportato in CSV, apribile con Excel')}
 $('exportBtn').addEventListener('click',exportCSV);
 $('importBtn').addEventListener('click',()=>$('importFile').click());
 $('googleSignInBtn').addEventListener('click',signInWithGoogle);
