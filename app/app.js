@@ -9,6 +9,7 @@ const GOOGLE_SCOPE='https://www.googleapis.com/auth/spreadsheets https://www.goo
 let tokenClient=null;
 let accessToken='';
 let tokenExpiresAt=0;
+let googleDriveFolderId='';
 let records=loadRecords(), coverData='';
 const $=id=>document.getElementById(id);
 function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]')}catch{return []}}
