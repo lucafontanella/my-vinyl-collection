@@ -81,6 +81,20 @@ function googleRowsToRecords(rows){
       updatedAt:row[9]||''
     }));
 }
+function recordsToGoogleRows(list){
+  return list.map(r=>[
+    r.id||'',
+    r.artist||'',
+    r.year||'',
+    r.album||'',
+    r.genre||'',
+    r.label||'',
+    r.info||'',
+    r.cover||'',
+    r.createdAt||'',
+    r.updatedAt||''
+  ]);
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
