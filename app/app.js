@@ -194,7 +194,16 @@ function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));r
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function coverHTML(r){const src=r.cover||'';return src?`<img loading="lazy" src="${esc(src)}" alt="Copertina ${esc(r.album)}" onerror="this.remove()">`:'<span class="placeholder">♫</span>'}
+function coverHTML(r){
+  const src=r.cover||'';
+  if(src.startsWith('drive:')){
+    const fileId=src.slice(6);
+    return `<span class="placeholder drive-cover" data-drive-id="${esc(fileId)}" data-album="${esc(r.album)}">♫</span>`;
+  }
+  return src
+    ?`<img loading="lazy" src="${esc(src)}" alt="Copertina ${esc(r.album)}" onerror="this.remove()">`
+    :'<span class="placeholder">♫</span>';
+}
 function render(){
  const q=$('searchInput').value.trim().toLowerCase();
  let list=records.filter(r=>[r.artist,r.album,r.genre,r.label,r.year,r.info].join(' ').toLowerCase().includes(q));
