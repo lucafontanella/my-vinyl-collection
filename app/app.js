@@ -69,6 +69,14 @@ async function getGoogleRecords(){
   const rows=await readGoogleSheet();
   return googleRowsToRecords(rows);
 }
+async function checkSyncStatus(){
+  const googleRecords=await getGoogleRecords();
+  return {
+    localCount:records.length,
+    googleCount:googleRecords.length,
+    googleRecords
+  };
+}
 function googleRowsToRecords(rows){
   if(!rows.length) return [];
   return rows.slice(1)
