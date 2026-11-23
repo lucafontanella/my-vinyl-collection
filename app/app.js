@@ -144,6 +144,32 @@ async function getGoogleDriveFolder(){
   googleDriveFolderId=folder.id;
   return googleDriveFolderId;
 }
+async function uploadCoverToDrive(dataUrl,albumName){
+  const folderId=await getGoogleDriveFolder();
+  const imageBlob=await fetch(dataUrl).then(response=>response.blob());
+  const extension=imageBlob.type==='image/png'?'png':'jpg';
+  const metadata={
+    name:`${albumName.replace(/[\\/:*?"<>|]/g,'-')}.${extension}`,
+    mimeType:imageBlob.type,
+    parents:[folderId]
+  };
+  const formData=new FormData();
+  formData.append(
+    'metadata',
+    new Blob([JSON.stringify(metadata)],{
+      type:'application/json'
+    })
+  );
+  formData.append('file',imageBlob);
+  const result=await googleDriveRequest(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
+    {
+      method:'POST',
+      body:formData
+    }
+  );
+  return `drive:${result.id}`;
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
