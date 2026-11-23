@@ -265,7 +265,6 @@ $('settingsBtn').addEventListener('click',()=>{
   updateConnection();
   $('settingsDialog').showModal();
 });
-$('settingsForm').addEventListener('submit',e=>{e.preventDefault();localStorage.setItem(CONFIG_KEY,JSON.stringify({apiUrl:$('apiUrl').value.trim()}));$('settingsDialog').close();toast('Configurazione salvata. Sincronizzazione da attivare nella prossima fase.');updateConnection()});
 function updateConnection(){
   const connected=!!accessToken && Date.now()<tokenExpiresAt;
   $('connectionText').textContent=connected
