@@ -43,6 +43,27 @@ function signInWithGoogle(){
     prompt:accessToken?'':''
   });
 }
+async function readGoogleSheet(){
+  if(!accessToken || Date.now()>=tokenExpiresAt){
+    throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
+  }
+  const range=encodeURIComponent(`${SHEET_NAME}!A1:J`);
+  const response=await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}`,
+    {
+      method:'GET',
+      headers:{
+        Authorization:`Bearer ${accessToken}`
+      }
+    }
+  );
+  if(!response.ok){
+    const error=await response.json();
+    throw new Error(error.error?.message||'Errore durante la lettura di Google Sheets.');
+  }
+  const data=await response.json();
+  return data.values||[];
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
