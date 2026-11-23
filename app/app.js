@@ -116,6 +116,34 @@ async function googleDriveRequest(url,options={}){
   if(response.status===204) return null;
   return response.json();
 }
+async function getGoogleDriveFolder(){
+  if(googleDriveFolderId) return googleDriveFolderId;
+  const query=encodeURIComponent(
+    "name='My Vinyl Collection Covers' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+  );
+  const result=await googleDriveRequest(
+    `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)&pageSize=100`
+  );
+  if(result.files?.length){
+    googleDriveFolderId=result.files[0].id;
+    return googleDriveFolderId;
+  }
+  const folder=await googleDriveRequest(
+    'https://www.googleapis.com/drive/v3/files',
+    {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        name:'My Vinyl Collection Covers',
+        mimeType:'application/vnd.google-apps.folder'
+      })
+    }
+  );
+  googleDriveFolderId=folder.id;
+  return googleDriveFolderId;
+}
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
 function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
