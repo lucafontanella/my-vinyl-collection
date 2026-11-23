@@ -1,5 +1,14 @@
 const STORE_KEY='my-vinyl-collection-v1';
 const CONFIG_KEY='my-vinyl-config-v1';
+// Google Sheets API
+const GOOGLE_CLIENT_ID='970655102710-i53abq7fnfk505hamht9gj4nudea8v74.apps.googleusercontent.com';
+const SPREADSHEET_ID='1nlIEvMr0OHjghTlz4jeglklOWsXX2CYpoc6rJHGg1VA';
+const SHEET_NAME='Vinili';
+const GOOGLE_SCOPE='https://www.googleapis.com/auth/spreadsheets';
+// Sessione Google
+let tokenClient=null;
+let accessToken='';
+let tokenExpiresAt=0;
 let records=loadRecords(), coverData='';
 const $=id=>document.getElementById(id);
 function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]')}catch{return []}}
