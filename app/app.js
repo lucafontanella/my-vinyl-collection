@@ -1,5 +1,4 @@
 const STORE_KEY='my-vinyl-collection-v1';
-const CONFIG_KEY='my-vinyl-config-v1';
 // Google Sheets API
 const GOOGLE_CLIENT_ID='970655102710-i53abq7fnfk505hamht9gj4nudea8v74.apps.googleusercontent.com';
 const SPREADSHEET_ID='1nlIEvMr0OHjghTlz4jeglklOWsXX2CYpoc6rJHGg1VA';
@@ -190,7 +189,6 @@ async function downloadCoverFromDrive(fileId){
   return URL.createObjectURL(imageBlob);
 }
 function saveRecords(){localStorage.setItem(STORE_KEY,JSON.stringify(records));render()}
-function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}catch{return {}}}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function coverHTML(r){
