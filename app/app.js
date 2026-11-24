@@ -168,22 +168,11 @@ function recordsToGoogleRows(list){
   ]);
 }
 async function writeGoogleSheet(list){
+  if(!Array.isArray(list) || list.length===0){
+    throw new Error('Il catalogo è vuoto. Nessun dato è stato scritto.');
+  }
   if(!accessToken || Date.now()>=tokenExpiresAt){
     throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
-  }
-  const clearUrl=
-    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A2:J')} :clear`.replace(' :clear',':clear');
-  const clearResponse=await fetch(clearUrl,{
-    method:'POST',
-    headers:{
-      Authorization:`Bearer ${accessToken}`
-    }
-  });
-  if(!clearResponse.ok){
-    throw new Error('Impossibile preparare il foglio Google per la sincronizzazione.');
-  }
-  if(!list.length){
-    return;
   }
   const range=encodeURIComponent(`${SHEET_NAME}!A2:J`);
   const response=await fetch(
@@ -200,11 +189,11 @@ async function writeGoogleSheet(list){
       })
     }
   );
+  const result=await response.json();
   if(!response.ok){
-    const error=await response.json();
-    throw new Error(error.error?.message||'Errore durante la scrittura su Google Sheets.');
+    throw new Error(result.error?.message||'Errore durante la scrittura su Google Sheets.');
   }
-  return response.json();
+  return result;
 }
 async function googleDriveRequest(url,options={}){
   if(!accessToken || Date.now()>=tokenExpiresAt){
