@@ -70,15 +70,25 @@ async function getGoogleRecords(){
 }
 async function checkSyncStatus(){
   const googleRecords=await getGoogleRecords();
+  const mergeResult=mergeRecords(records,googleRecords);
   return {
     localCount:records.length,
     googleCount:googleRecords.length,
-    googleRecords
+    googleRecords,
+    mergedRecords:mergeResult.records,
+    conflicts:mergeResult.conflicts
   };
 }
 async function syncWithGoogle(){
   try{
     const status=await checkSyncStatus();
+    if(status.conflicts.length>0){
+      toast(
+        `Sincronizzazione sospesa: ${status.conflicts.length} conflitti da risolvere.`
+      );
+      console.warn('Conflitti di sincronizzazione:',status.conflicts);
+      return;
+    }
     if(status.localCount===0 && status.googleCount===0){
       toast('Entrambi gli archivi sono vuoti.');
       return;
@@ -99,11 +109,24 @@ async function syncWithGoogle(){
       const preparedRecords=await prepareRecordsForGoogle(records);
       await writeGoogleSheet(preparedRecords);
       records=preparedRecords;
-      saveRecords();      
+      saveRecords();
       toast('Catalogo caricato su Google Sheets.');
       return;
     }
-    toast('Entrambi gli archivi contengono dati. Verifichiamo le differenze prima di sincronizzare.');
+    if(!confirm(
+      `Confronto completato.\n\n`+
+      `Record nell'app: ${status.localCount}\n`+
+      `Record in Google Sheets: ${status.googleCount}\n`+
+      `Record risultanti: ${status.mergedRecords.length}\n\n`+
+      `Vuoi aggiornare entrambi gli archivi con il catalogo risultante?`
+    )) return;
+    const preparedRecords=await prepareRecordsForGoogle(
+      status.mergedRecords
+    );
+    await writeGoogleSheet(preparedRecords);
+    records=preparedRecords;
+    saveRecords();
+    toast('Sincronizzazione completata.');
   }catch(error){
     console.error('Errore sincronizzazione:',error);
     toast(error.message||'Errore durante la sincronizzazione.');
@@ -126,6 +149,60 @@ function googleRowsToRecords(rows){
       updatedAt:row[9]||'',
       deletedAt:row[10]||''
     }));
+}
+function mergeRecords(localRecords,googleRecords){
+  const merged=new Map();
+  const conflicts=[];
+  const fields=[
+    'id',
+    'artist',
+    'year',
+    'album',
+    'genre',
+    'label',
+    'info',
+    'cover',
+    'createdAt',
+    'updatedAt',
+    'deletedAt'
+  ];
+  function timestamp(record){
+    const value=record.updatedAt||record.deletedAt||record.createdAt;
+    const time=Date.parse(value||'');
+    return Number.isFinite(time)?time:0;
+  }
+  function sameRecord(a,b){
+    return fields.every(field=>
+      String(a[field]??'')===String(b[field]??'')
+    );
+  }
+  for(const record of localRecords){
+    merged.set(record.id,record);
+  }
+  for(const googleRecord of googleRecords){
+    const localRecord=merged.get(googleRecord.id);
+    if(!localRecord){
+      merged.set(googleRecord.id,googleRecord);
+      continue;
+    }
+    const localTime=timestamp(localRecord);
+    const googleTime=timestamp(googleRecord);
+    if(googleTime>localTime){
+      merged.set(googleRecord.id,googleRecord);
+    }else if(googleTime===localTime){
+      if(!sameRecord(localRecord,googleRecord)){
+        conflicts.push({
+          id:googleRecord.id,
+          local:localRecord,
+          google:googleRecord
+        });
+      }
+    }
+  }
+  return {
+    records:Array.from(merged.values()),
+    conflicts
+  };
 }
 function recordsToGoogleRows(list){
   if(list.some(r=>r.cover?.startsWith('data:'))){
@@ -474,7 +551,8 @@ function updateConnection(){
   if(syncButton){
     syncButton.disabled=!connected;
   }
-}function exportCSV(){const cols=['ID','Artista','Anno','Album','Genere','Etichetta','Info','Copertina','Data aggiunta'];const keys=['id','artist','year','album','genre','label','info','cover','createdAt'];const csv=[cols,...records.map(r=>keys.map(k=>r[k]||''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-vinyl-collection.csv';a.click();URL.revokeObjectURL(a.href);toast('Catalogo esportato in CSV, apribile con Excel')}
+}
+function exportCSV(){const cols=['ID','Artista','Anno','Album','Genere','Etichetta','Info','Copertina','Data aggiunta'];const keys=['id','artist','year','album','genre','label','info','cover','createdAt'];const csv=[cols,...records.map(r=>keys.map(k=>r[k]||''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-vinyl-collection.csv';a.click();URL.revokeObjectURL(a.href);toast('Catalogo esportato in CSV, apribile con Excel')}
 $('exportBtn').addEventListener('click',exportCSV);
 $('importBtn').addEventListener('click',()=>$('importFile').click());
 $('googleSignInBtn').addEventListener('click',signInWithGoogle);
