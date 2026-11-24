@@ -142,7 +142,8 @@ function recordsToGoogleRows(list){
     r.info||'',
     r.cover||'',
     r.createdAt||'',
-    r.updatedAt||''
+    r.updatedAt||'',
+    r.deletedAt||''
   ]);
 }
 async function writeGoogleSheet(list){
@@ -152,24 +153,57 @@ async function writeGoogleSheet(list){
   if(!accessToken || Date.now()>=tokenExpiresAt){
     throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
   }
-  const range=encodeURIComponent(`${SHEET_NAME}!A2:J`);
+  const data=recordsToGoogleRows(list);
+  const rows=data.map(row=>({
+    values:row.map(value=>({
+      userEnteredValue:{
+        stringValue:String(value??'')
+      }
+    }))
+  }));
   const response=await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?valueInputOption=RAW`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}:batchUpdate`,
     {
-      method:'PUT',
+      method:'POST',
       headers:{
         Authorization:`Bearer ${accessToken}`,
         'Content-Type':'application/json'
       },
       body:JSON.stringify({
-        majorDimension:'ROWS',
-        values:recordsToGoogleRows(list)
+        requests:[
+          {
+            updateCells:{
+              range:{
+                sheetId:0,
+                startRowIndex:1,
+                startColumnIndex:0,
+                endColumnIndex:11
+              },
+              rows,
+              fields:'userEnteredValue'
+            }
+          },
+          {
+            repeatCell:{
+              range:{
+                sheetId:0,
+                startRowIndex:data.length+1,
+                startColumnIndex:0,
+                endColumnIndex:11
+              },
+              cell:{},
+              fields:'userEnteredValue'
+            }
+          }
+        ]
       })
     }
   );
   const result=await response.json();
   if(!response.ok){
-    throw new Error(result.error?.message||'Errore durante la scrittura su Google Sheets.');
+    throw new Error(
+      result.error?.message||'Errore durante la scrittura su Google Sheets.'
+    );
   }
   return result;
 }
