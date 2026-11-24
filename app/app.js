@@ -112,6 +112,20 @@ async function writeGoogleSheet(list){
   if(!accessToken || Date.now()>=tokenExpiresAt){
     throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
   }
+  const clearUrl=
+    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME+'!A2:J')} :clear`.replace(' :clear',':clear');
+  const clearResponse=await fetch(clearUrl,{
+    method:'POST',
+    headers:{
+      Authorization:`Bearer ${accessToken}`
+    }
+  });
+  if(!clearResponse.ok){
+    throw new Error('Impossibile preparare il foglio Google per la sincronizzazione.');
+  }
+  if(!list.length){
+    return;
+  }
   const range=encodeURIComponent(`${SHEET_NAME}!A2:J`);
   const response=await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?valueInputOption=RAW`,
