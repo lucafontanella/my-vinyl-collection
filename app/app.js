@@ -325,7 +325,42 @@ $('searchInput').addEventListener('input',render);$('sortSelect').addEventListen
 $('clearSearch').addEventListener('click',()=>{$('searchInput').value='';render()});
 $('coverFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;if(f.size>1800000){toast('Immagine troppo grande: scegli un file sotto 1,8 MB.');e.target.value='';return}const reader=new FileReader();reader.onload=()=>{coverData=reader.result;setCoverPreview(coverData);$('coverUrl').value=''};reader.readAsDataURL(f)});
 $('coverUrl').addEventListener('input',()=>{coverData='';setCoverPreview($('coverUrl').value)});
-$('albumForm').addEventListener('submit',e=>{e.preventDefault();const id=$('albumId').value||('VIN-'+Date.now().toString(36).toUpperCase());const old=records.find(r=>r.id===id);const cover=coverData||$('coverUrl').value.trim()||old?.cover||'';const rec={id,artist:$('artist').value.trim(),album:$('album').value.trim(),year:$('year').value,genre:$('genre').value.trim(),label:$('label').value.trim(),info:$('info').value.trim(),cover,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};if(old)records=records.map(x=>x.id===id?rec:x);else records.push(rec);saveRecords();$('albumDialog').close();toast(old?'Disco aggiornato':'Disco aggiunto');});
+$('albumForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=$('albumId').value||('VIN-'+Date.now().toString(36).toUpperCase());
+  const old=records.find(r=>r.id===id);
+  let cover=coverData||$('coverUrl').value.trim()||old?.cover||'';
+  const rec={
+    id,
+    artist:$('artist').value.trim(),
+    album:$('album').value.trim(),
+    year:$('year').value,
+    genre:$('genre').value.trim(),
+    label:$('label').value.trim(),
+    info:$('info').value.trim(),
+    cover,
+    createdAt:old?.createdAt||new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  try{
+    if(cover.startsWith('data:') && accessToken && Date.now()<tokenExpiresAt){
+      toast('Caricamento copertina su Google Drive...');
+      cover=await uploadCoverToDrive(cover,rec.album);
+      rec.cover=cover;
+    }
+    if(old){
+      records=records.map(x=>x.id===id?rec:x);
+    }else{
+      records.push(rec);
+    }
+    saveRecords();
+    $('albumDialog').close();
+    toast(old?'Disco aggiornato':'Disco aggiunto');
+  }catch(error){
+    console.error('Errore salvataggio disco:',error);
+    toast(error.message||'Impossibile salvare il disco.');
+  }
+});
 $('deleteBtn').addEventListener('click',()=>{const id=$('albumId').value;if(!id||!confirm('Eliminare questo disco dal catalogo?'))return;records=records.filter(r=>r.id!==id);saveRecords();$('albumDialog').close();toast('Disco eliminato')});
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
 $('settingsBtn').addEventListener('click',()=>{
