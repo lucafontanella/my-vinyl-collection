@@ -106,36 +106,6 @@ async function syncWithGoogle(){
     toast(error.message||'Errore durante la sincronizzazione.');
   }
 }
-async function syncWithGoogle(){
-  try{
-    const status=await checkSyncStatus();
-    if(status.localCount===0 && status.googleCount===0){
-      toast('Entrambi gli archivi sono vuoti.');
-      return;
-    }
-    if(status.localCount===0 && status.googleCount>0){
-      if(!confirm(
-        `Google Sheets contiene ${status.googleCount} dischi. Vuoi importarli nell'app?`
-      )) return;
-      records=status.googleRecords;
-      saveRecords();
-      toast('Catalogo importato da Google Sheets.');
-      return;
-    }
-    if(status.localCount>0 && status.googleCount===0){
-      if(!confirm(
-        `L'app contiene ${status.localCount} dischi, mentre Google Sheets è vuoto. Vuoi caricare il catalogo su Google Sheets?`
-      )) return;
-      await writeGoogleSheet(records);
-      toast('Catalogo caricato su Google Sheets.');
-      return;
-    }
-    toast('Entrambi gli archivi contengono dati. Verifichiamo le differenze prima di sincronizzare.');
-  }catch(error){
-    console.error('Errore sincronizzazione:',error);
-    toast(error.message||'Errore durante la sincronizzazione.');
-  }
-}
 function googleRowsToRecords(rows){
   if(!rows.length) return [];
   return rows.slice(1)
