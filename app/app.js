@@ -96,7 +96,10 @@ async function syncWithGoogle(){
       if(!confirm(
         `L'app contiene ${status.localCount} dischi, mentre Google Sheets è vuoto. Vuoi caricare il catalogo su Google Sheets?`
       )) return;
-      await writeGoogleSheet(records);
+      const preparedRecords=await prepareRecordsForGoogle(records);
+      await writeGoogleSheet(preparedRecords);
+      records=preparedRecords;
+      saveRecords();      
       toast('Catalogo caricato su Google Sheets.');
       return;
     }
@@ -239,6 +242,20 @@ async function uploadCoverToDrive(dataUrl,albumName){
   );
   return `drive:${result.id}`;
 }
+async function prepareRecordsForGoogle(list){
+  const prepared=[];
+  for(const record of list){
+    const copy={...record};
+    if(copy.cover?.startsWith('data:')){
+      copy.cover=await uploadCoverToDrive(
+        copy.cover,
+        copy.album||'Copertina'
+      );
+    }
+    prepared.push(copy);
+  }
+  return prepared;
+}
 async function downloadCoverFromDrive(fileId){
   if(!accessToken || Date.now()>=tokenExpiresAt){
     throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
@@ -318,7 +335,30 @@ function openForm(r=null){
  $('coverUrl').value=r?.cover?.startsWith('data:')?'':(r?.cover||'');setCoverPreview(r?.cover||'');
  $('albumDialog').showModal();
 }
-function setCoverPreview(src){$('coverPreview').innerHTML=src?`<img src="${esc(src)}" alt="Anteprima copertina">`:'<span>♫</span>'}
+function setCoverPreview(src){
+  const preview=$('coverPreview');
+  if(!src){
+    preview.innerHTML='<span>♫</span>';
+    return;
+  }
+  if(src.startsWith('drive:')){
+    preview.innerHTML='<span>Copertina su Google Drive</span>';
+    if(accessToken && Date.now()<tokenExpiresAt){
+      const fileId=src.slice(6);
+      downloadCoverFromDrive(fileId)
+        .then(imageUrl=>{
+          if($('albumId').value && preview.isConnected){
+            preview.innerHTML=`<img src="${esc(imageUrl)}" alt="Anteprima copertina">`;
+          }
+        })
+        .catch(error=>{
+          console.error('Errore anteprima copertina:',error);
+        });
+    }
+    return;
+  }
+  preview.innerHTML=`<img src="${esc(src)}" alt="Anteprima copertina">`;
+}
 $('albumGrid').addEventListener('click',e=>{const card=e.target.closest('.album-card');if(card)openForm(records.find(r=>r.id===card.dataset.id))});
 ['addBtn','emptyAddBtn'].forEach(id=>$(id).addEventListener('click',()=>openForm()));
 $('searchInput').addEventListener('input',render);$('sortSelect').addEventListener('change',render);
