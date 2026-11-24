@@ -47,7 +47,7 @@ async function readGoogleSheet(){
   if(!accessToken || Date.now()>=tokenExpiresAt){
     throw new Error('Accesso Google scaduto. Effettua nuovamente l’accesso.');
   }
-  const range=encodeURIComponent(`${SHEET_NAME}!A1:J`);
+  const range=encodeURIComponent(`${SHEET_NAME}!A1:K`);
   const response=await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}`,
     {
@@ -123,10 +123,15 @@ function googleRowsToRecords(rows){
       info:row[6]||'',
       cover:row[7]||'',
       createdAt:row[8]||'',
-      updatedAt:row[9]||''
+      updatedAt:row[9]||'',
+      deletedAt:row[10]||''
     }));
 }
 function recordsToGoogleRows(list){
+  if(list.some(r=>r.cover?.startsWith('data:'))){
+    throw new Error('Una o più copertine non sono ancora state trasferite su Google Drive.'
+    );
+  }
   return list.map(r=>[
     r.id||'',
     r.artist||'',
@@ -289,18 +294,19 @@ function coverHTML(r){
 }
 function render(){
  const q=$('searchInput').value.trim().toLowerCase();
- let list=records.filter(r=>[r.artist,r.album,r.genre,r.label,r.year,r.info].join(' ').toLowerCase().includes(q));
+ const activeRecords=records.filter(r=>!r.deletedAt);
+ let list=activeRecords.filter(r=>[r.artist,r.album,r.genre,r.label,r.year,r.info].join(' ').toLowerCase().includes(q));  
  const sort=$('sortSelect').value;
  list.sort((a,b)=>sort==='album'?a.album.localeCompare(b.album):sort==='year-desc'?(Number(b.year)||0)-(Number(a.year)||0):sort==='year-asc'?(Number(a.year)||9999)-(Number(b.year)||9999):sort==='added'?(b.createdAt||'').localeCompare(a.createdAt||''):a.artist.localeCompare(b.artist));
- $('totalCount').textContent=records.length;
- $('artistCount').textContent=new Set(records.map(r=>r.artist.trim().toLowerCase()).filter(Boolean)).size;
- $('genreCount').textContent=new Set(records.map(r=>r.genre.trim().toLowerCase()).filter(Boolean)).size;
+ $('totalCount').textContent=activeRecords.length;
+ $('artistCount').textContent=new Set(activeRecords.map(r=>r.artist.trim().toLowerCase()).filter(Boolean)).size;
+ $('genreCount').textContent=new Set(activeRecords.map(r=>r.genre.trim().toLowerCase()).filter(Boolean)).size;
  $('resultCount').textContent=`${list.length} ${list.length===1?'risultato':'risultati'}`;
  $('albumGrid').innerHTML=list.map(r=>`<article class="album-card" data-id="${esc(r.id)}"><div class="album-cover">${coverHTML(r)}</div><h3>${esc(r.album)}</h3><p>${esc(r.artist)}${r.year?' · '+esc(r.year):''}</p></article>`).join('');
- $('emptyState').classList.toggle('show',records.length===0);
+ $('emptyState').classList.toggle('show',activeRecords.length===0);
  $('albumGrid').style.display=list.length?'grid':'none';
  loadDriveCovers();
- if(records.length&&list.length===0){$('emptyState').classList.add('show');$('emptyState').querySelector('h3').textContent='Nessun disco trovato';$('emptyState').querySelector('p').textContent='Prova con un altro artista o titolo.';$('emptyState').querySelector('button').classList.add('hidden')}else{$('emptyState').querySelector('h3').textContent='La tua collezione comincia qui';$('emptyState').querySelector('p').textContent='Aggiungi il primo vinile oppure importa un file CSV esportato da Excel.';$('emptyState').querySelector('button').classList.remove('hidden')}
+ if(activeRecords.length&&list.length===0)){$('emptyState').classList.add('show');$('emptyState').querySelector('h3').textContent='Nessun disco trovato';$('emptyState').querySelector('p').textContent='Prova con un altro artista o titolo.';$('emptyState').querySelector('button').classList.add('hidden')}else{$('emptyState').querySelector('h3').textContent='La tua collezione comincia qui';$('emptyState').querySelector('p').textContent='Aggiungi il primo vinile oppure importa un file CSV esportato da Excel.';$('emptyState').querySelector('button').classList.remove('hidden')}
 }
 async function loadDriveCovers(){
   if(!accessToken || Date.now()>=tokenExpiresAt) return;
@@ -401,7 +407,18 @@ $('albumForm').addEventListener('submit',async e=>{
     toast(error.message||'Impossibile salvare il disco.');
   }
 });
-$('deleteBtn').addEventListener('click',()=>{const id=$('albumId').value;if(!id||!confirm('Eliminare questo disco dal catalogo?'))return;records=records.filter(r=>r.id!==id);saveRecords();$('albumDialog').close();toast('Disco eliminato')});
+$('deleteBtn').addEventListener('click',()=>{
+  const id=$('albumId').value;
+  if(!id||!confirm('Eliminare questo disco dal catalogo?')) return;
+  records=records.map(r=>
+    r.id===id
+      ? {...r,deletedAt:new Date().toISOString(),updatedAt:new Date().toISOString()}
+      : r
+  );
+  saveRecords();
+  $('albumDialog').close();
+  toast('Disco eliminato');
+});
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
 $('settingsBtn').addEventListener('click',()=>{
   updateConnection();
