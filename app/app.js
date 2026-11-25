@@ -195,7 +195,7 @@ function mergeRecords(localRecords,googleRecords){
     const otherRecord=
       selectedRecord===localRecord?googleRecord:localRecord;
     if(localTime===googleTime){
-      const sameOtherFields=fields.every(field=>
+      const sameWithoutCover=fields.every(field=>
         String(localRecord[field]??'')===
         String(googleRecord[field]??'')
       );
@@ -203,27 +203,13 @@ function mergeRecords(localRecords,googleRecords){
         !localRecord.cover||
         !googleRecord.cover||
         localRecord.cover===googleRecord.cover;
-      if(!sameOtherFields&&!coversCompatible){
+
+      if(!sameWithoutCover||!coversCompatible){
         conflicts.push({
           id:googleRecord.id,
           local:localRecord,
           google:googleRecord
         });
-      }else if(!sameOtherFields){
-        const sameWithoutCover=fields
-          .filter(field=>field!=='cover')
-          .every(field=>
-            String(localRecord[field]??'')===
-            String(googleRecord[field]??'')
-          );
-
-        if(!sameWithoutCover){
-          conflicts.push({
-            id:googleRecord.id,
-            local:localRecord,
-            google:googleRecord
-          });
-        }
       }
     }
     if(!selectedRecord.cover&&otherRecord.cover){
