@@ -161,7 +161,6 @@ function mergeRecords(localRecords,googleRecords){
     'genre',
     'label',
     'info',
-    'cover',
     'createdAt',
     'updatedAt',
     'deletedAt'
@@ -187,17 +186,53 @@ function mergeRecords(localRecords,googleRecords){
     }
     const localTime=timestamp(localRecord);
     const googleTime=timestamp(googleRecord);
+    let selectedRecord;
     if(googleTime>localTime){
-      merged.set(googleRecord.id,googleRecord);
-    }else if(googleTime===localTime){
-      if(!sameRecord(localRecord,googleRecord)){
+      selectedRecord=googleRecord;
+    }else{
+      selectedRecord=localRecord;
+    }
+    const otherRecord=
+      selectedRecord===localRecord?googleRecord:localRecord;
+    if(localTime===googleTime){
+      const sameOtherFields=fields.every(field=>
+        String(localRecord[field]??'')===
+        String(googleRecord[field]??'')
+      );
+      const coversCompatible=
+        !localRecord.cover||
+        !googleRecord.cover||
+        localRecord.cover===googleRecord.cover;
+      if(!sameOtherFields&&!coversCompatible){
         conflicts.push({
           id:googleRecord.id,
           local:localRecord,
           google:googleRecord
         });
+      }else if(!sameOtherFields){
+        const sameWithoutCover=fields
+          .filter(field=>field!=='cover')
+          .every(field=>
+            String(localRecord[field]??'')===
+            String(googleRecord[field]??'')
+          );
+
+        if(!sameWithoutCover){
+          conflicts.push({
+            id:googleRecord.id,
+            local:localRecord,
+            google:googleRecord
+          });
+        }
       }
     }
+    if(!selectedRecord.cover&&otherRecord.cover){
+      selectedRecord={
+        ...selectedRecord,
+        cover:otherRecord.cover
+      };
+    }
+    merged.set(googleRecord.id,selectedRecord);
   }
   return {
     records:Array.from(merged.values()),
