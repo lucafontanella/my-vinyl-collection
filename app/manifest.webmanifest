@@ -2,9 +2,23 @@
   "name": "My Vinyl Collection",
   "short_name": "My Vinyl",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#111318",
   "theme_color": "#17191e",
   "description": "Il catalogo personale dei tuoi vinili",
-  "icons": []
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
 }
