@@ -353,12 +353,52 @@ async function getGoogleDriveFolder(){
   googleDriveFolderId=folder.id;
   return googleDriveFolderId;
 }
+async function getImageHash(blob){
+  const buffer=await blob.arrayBuffer();
+  const digest=await crypto.subtle.digest('SHA-256',buffer);
+  return Array.from(new Uint8Array(digest))
+    .map(byte=>byte.toString(16).padStart(2,'0'))
+    .join('');
+}
+async function getDriveImageBlob(fileId){
+  const response=await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    {
+      headers:{
+        Authorization:`Bearer ${accessToken}`
+      }
+    }
+  );
+  if(!response.ok){
+    throw new Error('Impossibile verificare una copertina già presente su Google Drive.');
+  }
+  return response.blob();
+}
 async function uploadCoverToDrive(dataUrl,albumName){
   const folderId=await getGoogleDriveFolder();
   const imageBlob=await fetch(dataUrl).then(response=>response.blob());
   const extension=imageBlob.type==='image/png'?'png':'jpg';
+  const fileName=`${albumName.replace(/[\\/:*?"<>|]/g,'-')}.${extension}`;
+  const imageHash=await getImageHash(imageBlob);
+  const safeName=fileName
+    .replace(/\\/g,'\\\\')
+    .replace(/'/g,"\\'");
+  const query=encodeURIComponent(
+    `name='${safeName}' and '${folderId}' in parents and trashed=false`
+  );
+  const existing=await googleDriveRequest(
+    `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType)&pageSize=100`
+  );
+  for(const file of existing.files||[]){
+    if(file.mimeType!==imageBlob.type) continue;
+    const existingBlob=await getDriveImageBlob(file.id);
+    const existingHash=await getImageHash(existingBlob);
+    if(existingHash===imageHash){
+      return `drive:${file.id}`;
+    }
+  }
   const metadata={
-    name:`${albumName.replace(/[\\/:*?"<>|]/g,'-')}.${extension}`,
+    name:fileName,
     mimeType:imageBlob.type,
     parents:[folderId]
   };
