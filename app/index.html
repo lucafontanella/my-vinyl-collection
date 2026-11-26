@@ -97,6 +97,43 @@
     </form>
   </dialog>
 
+  
+<dialog id="detailsDialog" class="dialog">
+  <div class="dialog-head">
+    <div>
+      <div class="eyebrow">COLLEZIONE</div>
+      <h2 id="detailsTitle">Dettaglio disco</h2>
+    </div>
+    <div>
+      <button type="button" id="editDetailsBtn" class="secondary-btn" title="Modifica disco">✎</button>
+      <button type="button" class="close-btn" data-close="detailsDialog">×</button>
+    </div>
+  </div>
+
+  <div class="details-cover" id="detailsCover"></div>
+
+  <div class="details-info">
+    <h3 id="detailsArtist"></h3>
+    <p id="detailsYear" class="muted"></p>
+
+    <div class="details-field">
+      <strong>Genere</strong>
+      <p id="detailsGenre"></p>
+    </div>
+
+    <div class="details-field">
+      <strong>Etichetta</strong>
+      <p id="detailsLabel"></p>
+    </div>
+
+    <div class="details-field">
+      <strong>Info / edizione / note</strong>
+      <p id="detailsInfo"></p>
+    </div>
+  </div>
+</dialog>
+
+  
 
 <dialog id="settingsDialog" class="dialog">
   <form id="settingsForm" method="dialog">
