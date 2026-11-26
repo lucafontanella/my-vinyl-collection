@@ -474,9 +474,9 @@ function render(){
  $('artistCount').textContent=new Set(activeRecords.map(r=>r.artist.trim().toLowerCase()).filter(Boolean)).size;
  $('genreCount').textContent=new Set(activeRecords.map(r=>r.genre.trim().toLowerCase()).filter(Boolean)).size;
  $('resultCount').textContent=`${list.length} ${list.length===1?'risultato':'risultati'}`;
- $('albumGrid').innerHTML=list.map(r=>`<article class="album-card" data-id="${esc(r.id)}"><div class="album-cover">${coverHTML(r)}</div><h3>${esc(r.album)}</h3><p>${esc(r.artist)}${r.year?' · '+esc(r.year):''}</p></article>`).join('');
+ $('').innerHTML=list.map(r=>`<article class="album-card" data-id="${esc(r.id)}"><div class="album-cover">${coverHTML(r)}</div><h3>${esc(r.album)}</h3><p>${esc(r.artist)}${r.year?' · '+esc(r.year):''}</p></article>`).join('');
  $('emptyState').classList.toggle('show',activeRecords.length===0);
- $('albumGrid').style.display=list.length?'grid':'none';
+ $('').style.display=list.length?'grid':'none';
  loadDriveCovers();
  if(activeRecords.length&&list.length===0){$('emptyState').classList.add('show');$('emptyState').querySelector('h3').textContent='Nessun disco trovato';$('emptyState').querySelector('p').textContent='Prova con un altro artista o titolo.';$('emptyState').querySelector('button').classList.add('hidden')}else{$('emptyState').querySelector('h3').textContent='La tua collezione comincia qui';$('emptyState').querySelector('p').textContent='Aggiungi il primo vinile oppure importa un file CSV esportato da Excel.';$('emptyState').querySelector('button').classList.remove('hidden')}
 }
@@ -537,7 +537,7 @@ function setCoverPreview(src){
   }
   preview.innerHTML=`<img src="${esc(src)}" alt="Anteprima copertina">`;
 }
-$('albumGrid').addEventListener('click',e=>{const card=e.target.closest('.album-card');if(card)openForm(records.find(r=>r.id===card.dataset.id))});
+$('').addEventListener('click',e=>{const card=e.target.closest('.album-card');if(card)openForm(records.find(r=>r.id===card.dataset.id))});
 ['addBtn','emptyAddBtn'].forEach(id=>$(id).addEventListener('click',()=>openForm()));
 $('searchInput').addEventListener('input',render);$('sortSelect').addEventListener('change',render);
 $('clearSearch').addEventListener('click',()=>{$('searchInput').value='';render()});
