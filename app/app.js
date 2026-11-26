@@ -513,6 +513,31 @@ function openForm(r=null){
  $('coverUrl').value=r?.cover?.startsWith('data:')?'':(r?.cover||'');setCoverPreview(r?.cover||'');
  $('albumDialog').showModal();
 }
+function openDetails(r){
+  if(!r)return;
+  $('detailsTitle').textContent=r.album||'Senza titolo';
+  $('detailsArtist').textContent=r.artist||'';
+  $('detailsYear').textContent=r.year||'';
+  $('detailsGenre').textContent=r.genre||'—';
+  $('detailsLabel').textContent=r.label||'—';
+  $('detailsInfo').textContent=r.info||'—';
+  const cover=$('detailsCover');
+  cover.innerHTML=coverHTML(r);
+  if(r.cover?.startsWith('drive:')){
+    const fileId=r.cover.slice(6);
+    if(accessToken && Date.now()<tokenExpiresAt){
+      downloadCoverFromDrive(fileId)
+        .then(imageUrl=>{
+          if($('detailsDialog').open){
+            cover.innerHTML=`<img src="${esc(imageUrl)}" alt="Copertina ${esc(r.album)}">`;
+          }
+        })
+        .catch(error=>console.error('Errore copertina:',error));
+    }
+  }
+  $('editDetailsBtn').dataset.id=r.id;
+  $('detailsDialog').showModal();
+}
 function setCoverPreview(src){
   const preview=$('coverPreview');
   if(!src){
