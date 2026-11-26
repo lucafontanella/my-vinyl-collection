@@ -515,7 +515,7 @@ function openForm(r=null){
 }
 function openDetails(r){
   if(!r)return;
-  $('detailsTitle').textContent=r.||'Senza titolo';
+  $('detailsTitle').textContent=r.album||'Senza titolo';
   $('detailsArtist').textContent=r.artist||'';
   $('detailsYear').textContent=r.year||'';
   $('detailsGenre').textContent=r.genre||'—';
@@ -529,7 +529,7 @@ function openDetails(r){
       downloadCoverFromDrive(fileId)
         .then(imageUrl=>{
           if($('detailsDialog').open){
-            cover.innerHTML=`<img src="${esc(imageUrl)}" alt="Copertina ${esc(r.)}">`;
+            cover.innerHTML=`<img src="${esc(imageUrl)}" alt="Copertina ${esc(r.album)}">`;
           }
         })
         .catch(error=>console.error('Errore copertina:',error));
