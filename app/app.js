@@ -467,7 +467,26 @@ function coverHTML(r){
 function render(){
  const q=$('searchInput').value.trim().toLowerCase();
  const activeRecords=records.filter(r=>!r.deletedAt);
- let list=activeRecords.filter(r=>[r.artist,r.album,r.genre,r.label,r.year,r.info].join(' ').toLowerCase().includes(q));  
+const normalize=s=>String(s||'')
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g,'');
+const terms=normalize(q).split(/\s+/).filter(Boolean);
+let list=activeRecords.filter(r=>{
+  const fields=[
+    r.artist,
+    r.album,
+    r.genre,
+    r.label,
+    r.year,
+    r.info
+  ].map(normalize);
+  return terms.every(term=>
+    fields.some(field=>
+      field.split(/\s+/).some(word=>word.startsWith(term))
+    )
+  );
+});  
  const sort=$('sortSelect').value;
  list.sort((a,b)=>sort==='album'?a.album.localeCompare(b.album):sort==='year-desc'?(Number(b.year)||0)-(Number(a.year)||0):sort==='year-asc'?(Number(a.year)||9999)-(Number(b.year)||9999):sort==='added'?(b.createdAt||'').localeCompare(a.createdAt||''):a.artist.localeCompare(b.artist));
  $('totalCount').textContent=activeRecords.length;
