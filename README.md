@@ -1,30 +1,115 @@
-# My Vinyl Collection – prototipo v1
+# My Vinyl Collection
 
-Questa è la prima base funzionante dell'interfaccia: catalogo locale, ricerca, ordinamento, inserimento/modifica/eliminazione, copertine tramite URL o caricamento dal dispositivo, importazione CSV ed esportazione CSV apribile con Excel.
+**My Vinyl Collection** is a Progressive Web App (PWA) designed to catalogue and manage a personal vinyl record collection.
 
-## Importante: stato della sincronizzazione
-La versione consegnata **non è ancora collegata a Google Sheets**. Il campo URL nelle impostazioni è predisposto per la fase successiva, ma non effettua ancora letture/scritture remote. I dati di prova restano nel browser/dispositivo tramite localStorage. Non inserire ancora l'intera collezione prima di aver configurato e testato il backup/sync.
+The application is designed for use on desktop computers, smartphones and tablets, with an interface optimized for browsing and managing a personal music collection.
 
-## Avvio rapido
-Per provare l'app sul computer:
-1. Estrai la cartella `app`.
-2. Avvia un server statico locale dalla cartella, ad esempio `python -m http.server 8000`.
-3. Apri `http://localhost:8000`.
-   - Per l'installazione PWA e il service worker serve HTTPS oppure localhost.
-4. Su Android, una volta pubblicata su un hosting HTTPS, apri l'indirizzo con Chrome e scegli "Aggiungi a schermata Home" / "Installa app".
+## Features
 
-## Struttura dati prevista per Google Sheets
-Foglio `Vinili`, intestazioni:
-`ID | Artista | Anno | Album | Genere | Etichetta | Info | Copertina | Data aggiunta | Data modifica`
+- **Personal catalogue:** add, view, edit and delete vinyl records.
+- **Physical copy management:** each entry represents a single physical copy, identified by a unique ID. Multiple copies of the same album can be catalogued separately.
+- **Cover artwork:** upload images from a device or use external image URLs.
+- **Record details:** view detailed information and cover artwork for each record.
+- **Search:** search by artist, album, year, genre, record label and additional information.
+- **Sorting:** organize the catalogue by artist, album, year and date added.
+- **CSV import and export:** import existing catalogues and export records in a format compatible with spreadsheet applications such as Microsoft Excel.
+- **Cloud synchronization:** integration with Google Sheets to synchronize the catalogue across devices.
+- **Cover storage:** Google Drive integration for storing cover images separately from the spreadsheet.
+- **Deletion management:** deleted records are marked in the archive rather than immediately removed, preserving information during synchronization.
+- **PWA installation:** install the application on compatible devices and access it through a dedicated app interface.
 
-Ogni riga rappresenta una copia fisica. Due copie dello stesso album hanno due ID distinti.
+## Architecture
 
-## Backend Google Apps Script
-La cartella `google_apps_script` contiene uno script iniziale che crea/usa il foglio `Vinili`. La sincronizzazione browser→Apps Script va completata e testata nella prossima fase, tenendo conto di autenticazione, accesso e gestione sicura delle immagini. Non pubblicare il servizio con accesso anonimo senza prima aver definito un'autenticazione adeguata.
+The application is built using standard web technologies and the following services:
 
-## Prossima fase
-1. Preparare Google Sheet.
-2. Importare le circa 60 righe esistenti.
-3. Collegare app e Sheet con un endpoint Apps Script.
-4. Implementare backup e sincronizzazione bidirezionale.
-5. Spostare le copertine caricate in Google Drive (non nel foglio).
+- **Frontend:** HTML, CSS and JavaScript.
+- **Local storage:** browser `localStorage`, used to keep a local copy of the catalogue.
+- **Cloud storage:** Google Sheets, used as the central catalogue archive.
+- **Image storage:** Google Drive, used to store album cover artwork.
+- **Authentication:** Google Identity Services and OAuth 2.0.
+- **Hosting:** GitHub Pages.
+- **Application installation:** Progressive Web App (PWA), using a web app manifest and Service Worker.
+- **Deployment:** GitHub Actions.
+
+Synchronization with Google Sheets is manually initiated by the user through the **Sync Now** function.
+
+Local and cloud records are compared using their modification timestamps. Cover images are managed separately through Google Drive.
+
+## Data structure
+
+The Google spreadsheet used by the application is named `My Vinyl Collection` and contains a worksheet called `Vinili`.
+
+The worksheet uses the following columns:
+
+| Field | Description |
+|---|---|
+| ID | Unique record identifier |
+| Artist | Artist or band name |
+| Year | Release year |
+| Album | Album title |
+| Genre | Music genre |
+| Label | Record label |
+| Info | Additional information |
+| Cover | Image reference |
+| Date Added | Record creation date |
+| Date Modified | Last modification date |
+| Deleted At | Deletion timestamp, if applicable |
+
+Each physical copy has its own unique ID, including multiple copies of the same album.
+
+## Getting started
+
+The application is published on GitHub Pages:
+
+[My Vinyl Collection](https://lucafontanella.github.io/my-vinyl-collection/)
+
+To run the project locally:
+
+1. Clone or download the repository.
+2. Open the `app` directory.
+3. Start a local static server, for example:
+
+   `python -m http.server 8000`
+
+4. Open `http://localhost:8000` in your browser.
+
+To install the application on a compatible device, open the published HTTPS address and use the browser's installation or Add to Home Screen option.
+
+## Repository structure
+
+```text
+my-vinyl-collection/
+│
+├── app/
+│   ├── index.html
+│   ├── app.js
+│   ├── styles.css
+│   ├── manifest.webmanifest
+│   ├── sw.js
+│   └── icons/
+│
+└── .github/
+    └── workflows/
+        └── deploy.yml
+```
+
+## Synchronization across devices
+
+Each device maintains its own local copy of the catalogue. Google Sheets acts as the shared archive for devices connected to the same Google account.
+
+To transfer changes between devices:
+
+1. Sign in with Google on the source device.
+2. Run synchronization to upload the latest changes to Google Sheets.
+3. Sign in with the same Google account on the destination device.
+4. Run synchronization to retrieve the updated catalogue.
+
+Google Drive is used for cover artwork, while Google Sheets stores the catalogue data.
+
+## Project status
+
+The project is currently functional and under active development.
+
+The main catalogue management features, cover handling, CSV import and export, Google synchronization and PWA installation have been implemented.
+
+Further development will focus on improving the user experience, expanding search capabilities and making the application architecture more flexible.
