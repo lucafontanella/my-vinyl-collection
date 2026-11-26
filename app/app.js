@@ -475,7 +475,7 @@ function render(){
  $('genreCount').textContent=new Set(activeRecords.map(r=>r.genre.trim().toLowerCase()).filter(Boolean)).size;
  $('resultCount').textContent=`${list.length} ${list.length===1?'risultato':'risultati'}`;
  $('albumGrid').innerHTML=list.map(r=>`<article class="album-card" data-id="${esc(r.id)}"><div class="album-cover">${coverHTML(r)}</div><h3>${esc(r.album)}</h3><p>${esc(r.artist)}${r.year?' · '+esc(r.year):''}</p></article>`).join(''); $('emptyState').classList.toggle('show',activeRecords.length===0);
- $('').style.display=list.length?'grid':'none';
+ $('albumGrid').style.display=list.length?'grid':'none';
  loadDriveCovers();
  if(activeRecords.length&&list.length===0){$('emptyState').classList.add('show');$('emptyState').querySelector('h3').textContent='Nessun disco trovato';$('emptyState').querySelector('p').textContent='Prova con un altro artista o titolo.';$('emptyState').querySelector('button').classList.add('hidden')}else{$('emptyState').querySelector('h3').textContent='La tua collezione comincia qui';$('emptyState').querySelector('p').textContent='Aggiungi il primo vinile oppure importa un file CSV esportato da Excel.';$('emptyState').querySelector('button').classList.remove('hidden')}
 }
@@ -549,7 +549,7 @@ function setCoverPreview(src){
       const fileId=src.slice(6);
       downloadCoverFromDrive(fileId)
         .then(imageUrl=>{
-          if($('Id').value && preview.isConnected){
+          if($('albumId').value && preview.isConnected){
             preview.innerHTML=`<img src="${esc(imageUrl)}" alt="Anteprima copertina">`;
           }
         })
