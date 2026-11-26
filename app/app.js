@@ -478,8 +478,7 @@ let list=activeRecords.filter(r=>{
     r.album,
     r.genre,
     r.label,
-    r.year,
-    r.info
+    r.year
   ].map(normalize);
   return terms.every(term=>
     fields.some(field=>
