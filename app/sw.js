@@ -1,4 +1,4 @@
-const CACHE='my-vinyl-v2';
+const CACHE='my-vinyl-v3';
 
 const FILES=[
   './',
