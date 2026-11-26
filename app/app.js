@@ -515,7 +515,7 @@ function openForm(r=null){
 }
 function openDetails(r){
   if(!r)return;
-  $('detailsTitle').textContent=r.album||'Senza titolo';
+  $('detailsTitle').textContent=r.||'Senza titolo';
   $('detailsArtist').textContent=r.artist||'';
   $('detailsYear').textContent=r.year||'';
   $('detailsGenre').textContent=r.genre||'—';
@@ -529,7 +529,7 @@ function openDetails(r){
       downloadCoverFromDrive(fileId)
         .then(imageUrl=>{
           if($('detailsDialog').open){
-            cover.innerHTML=`<img src="${esc(imageUrl)}" alt="Copertina ${esc(r.album)}">`;
+            cover.innerHTML=`<img src="${esc(imageUrl)}" alt="Copertina ${esc(r.)}">`;
           }
         })
         .catch(error=>console.error('Errore copertina:',error));
@@ -550,7 +550,7 @@ function setCoverPreview(src){
       const fileId=src.slice(6);
       downloadCoverFromDrive(fileId)
         .then(imageUrl=>{
-          if($('albumId').value && preview.isConnected){
+          if($('Id').value && preview.isConnected){
             preview.innerHTML=`<img src="${esc(imageUrl)}" alt="Anteprima copertina">`;
           }
         })
@@ -562,21 +562,25 @@ function setCoverPreview(src){
   }
   preview.innerHTML=`<img src="${esc(src)}" alt="Anteprima copertina">`;
 }
-$('').addEventListener('click',e=>{const card=e.target.closest('.album-card');if(card)openForm(records.find(r=>r.id===card.dataset.id))});
-['addBtn','emptyAddBtn'].forEach(id=>$(id).addEventListener('click',()=>openForm()));
+$('albumGrid').addEventListener('click',e=>{
+  const card=e.target.closest('.album-card');
+  if(card){
+    openDetails(records.find(r=>r.id===card.dataset.id));
+  }
+});
 $('searchInput').addEventListener('input',render);$('sortSelect').addEventListener('change',render);
 $('clearSearch').addEventListener('click',()=>{$('searchInput').value='';render()});
 $('coverFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;if(f.size>1800000){toast('Immagine troppo grande: scegli un file sotto 1,8 MB.');e.target.value='';return}const reader=new FileReader();reader.onload=()=>{coverData=reader.result;setCoverPreview(coverData);$('coverUrl').value=''};reader.readAsDataURL(f)});
 $('coverUrl').addEventListener('input',()=>{coverData='';setCoverPreview($('coverUrl').value)});
-$('albumForm').addEventListener('submit',async e=>{
+$('Form').addEventListener('submit',async e=>{
   e.preventDefault();
-  const id=$('albumId').value||('VIN-'+Date.now().toString(36).toUpperCase());
+  const id=$('Id').value||('VIN-'+Date.now().toString(36).toUpperCase());
   const old=records.find(r=>r.id===id);
   let cover=coverData||$('coverUrl').value.trim()||old?.cover||'';
   const rec={
     id,
     artist:$('artist').value.trim(),
-    album:$('album').value.trim(),
+    :$('').value.trim(),
     year:$('year').value,
     genre:$('genre').value.trim(),
     label:$('label').value.trim(),
@@ -588,7 +592,7 @@ $('albumForm').addEventListener('submit',async e=>{
   try{
     if(cover.startsWith('data:') && accessToken && Date.now()<tokenExpiresAt){
       toast('Caricamento copertina su Google Drive...');
-      cover=await uploadCoverToDrive(cover,rec.album);
+      cover=await uploadCoverToDrive(cover,rec.);
       rec.cover=cover;
     }
     if(old){
@@ -615,6 +619,13 @@ $('deleteBtn').addEventListener('click',()=>{
   saveRecords();
   $('albumDialog').close();
   toast('Disco eliminato');
+});
+$('editDetailsBtn').addEventListener('click',()=>{
+  const id=$('editDetailsBtn').dataset.id;
+  const record=records.find(r=>r.id===id);
+  if(!record)return;
+  $('detailsDialog').close();
+  openForm(record);
 });
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
 $('settingsBtn').addEventListener('click',()=>{
