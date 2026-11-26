@@ -567,6 +567,8 @@ $('albumGrid').addEventListener('click',e=>{
     openDetails(records.find(r=>r.id===card.dataset.id));
   }
 });
+$('addBtn').addEventListener('click',()=>openForm());
+$('emptyAddBtn').addEventListener('click',()=>openForm());
 $('searchInput').addEventListener('input',render);$('sortSelect').addEventListener('change',render);
 $('clearSearch').addEventListener('click',()=>{$('searchInput').value='';render()});
 $('coverFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;if(f.size>1800000){toast('Immagine troppo grande: scegli un file sotto 1,8 MB.');e.target.value='';return}const reader=new FileReader();reader.onload=()=>{coverData=reader.result;setCoverPreview(coverData);$('coverUrl').value=''};reader.readAsDataURL(f)});
